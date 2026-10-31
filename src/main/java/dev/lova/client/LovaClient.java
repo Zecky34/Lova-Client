@@ -2,6 +2,7 @@ package dev.lova.client;
 
 import dev.lova.client.feature.ComboFeature;
 import dev.lova.client.feature.CrosshairFeature;
+import dev.lova.client.feature.DamageIndicatorFeature;
 import dev.lova.client.feature.DamageTint;
 import dev.lova.client.feature.HudFeature;
 import dev.lova.client.feature.KeystrokesFeature;
@@ -23,6 +24,7 @@ public class LovaClient implements ClientModInitializer {
         HudFeature.init();
         ComboFeature.init();
         KeystrokesFeature.init();
+        DamageIndicatorFeature.init();
         LOGGER.info("Lova Client loaded");
     }
 }
