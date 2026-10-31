@@ -28,6 +28,18 @@ public class LovaConfig {
     public int damageTintRgb = 0x0060FF;
     public double damageTintOpacity = 0.6;
 
+    public boolean hudEnabled = false;
+    public boolean hudFps = true;
+    public boolean hudCps = true;
+    public boolean hudCoords = true;
+    public boolean hudPing = false;
+    public boolean hudTotem = false;
+    public boolean hudArmor = false;
+    public boolean hudEffects = false;
+    public boolean hudBackground = true;
+    public int hudCorner = 0;
+    public int hudColor = 0xFFFFFF;
+
     public static LovaConfig INSTANCE = new LovaConfig();
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
