@@ -1,6 +1,6 @@
 package dev.lova.client.feature;
 
-import dev.lova.client.ExtrasConfig;
+import dev.lova.client.LovaConfig;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,7 +16,9 @@ public class ExtraFeatures {
     private static int combo = 0;
     private static long lastHitMs = 0;
     private static LivingEntity pending;
-    private static int pendingTicks, pendingStartHurt, prevHurt;
+    private static int pendingTicks;
+    private static int pendingStartHurt;
+    private static int prevHurt;
 
     public static void init() {
         AttackEntityCallback.EVENT.register((player, level, hand, entity, hit) -> {
@@ -37,15 +38,16 @@ public class ExtraFeatures {
     }
 
     private static void tick(Minecraft mc) {
-        LocalPlayer p = mc.player;
-        if (p == null) {
+        if (mc.player == null) {
             combo = 0;
             pending = null;
             return;
         }
         long now = System.currentTimeMillis();
-        if (p.hurtTime > prevHurt) combo = 0; // hasar yedin
-        prevHurt = p.hurtTime;
+        if (mc.player.hurtTime > prevHurt) {
+            combo = 0;
+        }
+        prevHurt = mc.player.hurtTime;
         if (pending != null) {
             if (pending.hurtTime > pendingStartHurt) {
                 combo++;
@@ -55,30 +57,31 @@ public class ExtraFeatures {
                 pending = null;
             }
         }
-        if (combo > 0 && now - lastHitMs > ExtrasConfig.get().comboResetSec * 1000f) combo = 0;
-    }
-
-    private static int rgb(int r, int g, int b) {
-        return (r & 255) << 16 | (g & 255) << 8 | (b & 255);
+        if (combo > 0 && now - lastHitMs > LovaConfig.INSTANCE.comboResetSec * 1000.0) {
+            combo = 0;
+        }
     }
 
     private static void renderOverlay(GuiGraphics g, DeltaTracker dt) {
-        ExtrasConfig c = ExtrasConfig.get();
-        int w = g.guiWidth(), h = g.guiHeight();
+        LovaConfig c = LovaConfig.INSTANCE;
+        int w = g.guiWidth();
+        int h = g.guiHeight();
         if (c.filterEnabled) {
-            int a = (int) (c.filterStrength / 100f * 0.6f * 255f);
-            if (a > 0) g.fill(0, 0, w, h, (a << 24) | rgb(c.filterR, c.filterG, c.filterB));
+            int a = (int) (c.filterStrength * 0.6 * 255.0);
+            if (a > 0) {
+                g.fill(0, 0, w, h, (a << 24) | (c.filterRgb & 0xFFFFFF));
+            }
         }
         if (c.vignetteEnabled) {
             int n = 20;
             float size = Math.min(w, h) * 0.35f;
-            int base = rgb(c.vigR, c.vigG, c.vigB);
             for (int i = 0; i < n; i++) {
                 float t = 1f - (float) i / n;
-                int a = (int) (c.vignetteStrength / 100f * 255f * t * t);
+                int a = (int) (c.vignetteStrength * 255.0 * t * t);
                 if (a <= 0) continue;
-                int col = (Math.min(a, 255) << 24) | base;
-                int i0 = (int) (i * size / n), i1 = (int) ((i + 1) * size / n);
+                int col = (Math.min(a, 255) << 24) | (c.vignetteRgb & 0xFFFFFF);
+                int i0 = (int) (i * size / n);
+                int i1 = (int) ((i + 1) * size / n);
                 if (i1 <= i0) continue;
                 g.fill(i0, i0, w - i0, i1, col);
                 g.fill(i0, h - i1, w - i0, h - i0, col);
@@ -91,24 +94,27 @@ public class ExtraFeatures {
     private static void renderHud(GuiGraphics g, DeltaTracker dt) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
-        ExtrasConfig c = ExtrasConfig.get();
-        int w = g.guiWidth(), h = g.guiHeight();
+        LovaConfig c = LovaConfig.INSTANCE;
+        int w = g.guiWidth();
+        int h = g.guiHeight();
 
         if (c.comboEnabled && combo > 0) {
-            float s = c.comboScale;
             g.pose().pushMatrix();
             g.pose().translate(w / 2f, h / 2f + 24f);
-            g.pose().scale(s, s);
-            g.drawCenteredString(mc.font, "x" + combo, 0, 0, 0xFF000000 | rgb(c.comboR, c.comboG, c.comboB));
+            g.pose().scale(2f, 2f);
+            g.drawCenteredString(mc.font, "x" + combo, 0, 0, 0xFF000000 | (c.comboRgb & 0xFFFFFF));
             g.pose().popMatrix();
         }
 
         if (c.keysEnabled) {
-            float s = c.keysScale;
-            float bw = 66 * s, bh = 76 * s;
-            float ox = (c.keysCorner == 0 || c.keysCorner == 2) ? 4 : w - bw - 4;
-            float oy = (c.keysCorner == 0 || c.keysCorner == 1) ? 4 : h - bh - 4;
-            int col = rgb(c.keysR, c.keysG, c.keysB);
+            float s = (float) c.keysScale;
+            float bw = 66 * s;
+            float bh = 76 * s;
+            boolean left = c.keysCorner == 0 || c.keysCorner == 2;
+            boolean top = c.keysCorner == 0 || c.keysCorner == 1;
+            float ox = left ? 4 : w - bw - 4;
+            float oy = top ? 4 : h - bh - 4;
+            int col = c.keysRgb & 0xFFFFFF;
             g.pose().pushMatrix();
             g.pose().translate(ox, oy);
             g.pose().scale(s, s);
