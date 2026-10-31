@@ -1,5 +1,6 @@
 package dev.lova.client;
 
+import dev.lova.client.feature.NoHurtCam;
 import net.fabricmc.api.ClientModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,8 @@ public class LovaClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        LovaConfig.load();
+        NoHurtCam.init();
         LOGGER.info("Lova Client loaded");
     }
 }
