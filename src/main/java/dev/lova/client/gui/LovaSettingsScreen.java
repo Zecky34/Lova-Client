@@ -19,6 +19,7 @@ public class LovaSettingsScreen extends Screen {
 
     @Override
     protected void init() {
+        LovaConfig cfg = LovaConfig.INSTANCE;
         int w = 200;
         int h = 20;
         int x = this.width / 2 - w / 2;
@@ -30,15 +31,22 @@ public class LovaSettingsScreen extends Screen {
         this.addRenderableWidget(header);
 
         this.addRenderableWidget(Button.builder(noHurtCamLabel(), b -> {
-            LovaConfig.INSTANCE.noHurtCam = !LovaConfig.INSTANCE.noHurtCam;
+            cfg.noHurtCam = !cfg.noHurtCam;
             LovaConfig.save();
             b.setMessage(noHurtCamLabel());
         }).bounds(x, y + 30, w, h).build());
 
-        this.addRenderableWidget(new StrengthSlider(x, y + 60, w, h));
+        this.addRenderableWidget(new ValueSlider(x, y + 60, w, h, "Sallanma",
+                0, 1, cfg.hurtCamStrength, 100, "%",
+                v -> cfg.hurtCamStrength = v));
+
+        this.addRenderableWidget(Button.builder(Component.literal("Crosshair ayarları"), b -> {
+            LovaConfig.save();
+            this.minecraft.setScreen(new CrosshairScreen(this));
+        }).bounds(x, y + 90, w, h).build());
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
-                .bounds(x, y + 120, w, h).build());
+                .bounds(x, y + 130, w, h).build());
     }
 
     @Override
