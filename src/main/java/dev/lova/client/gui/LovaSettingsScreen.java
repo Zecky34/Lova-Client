@@ -45,8 +45,13 @@ public class LovaSettingsScreen extends Screen {
             this.minecraft.setScreen(new CrosshairScreen(this));
         }).bounds(x, y + 90, w, h).build());
 
+        this.addRenderableWidget(Button.builder(Component.literal("Damage Tint ayarları"), b -> {
+            LovaConfig.save();
+            this.minecraft.setScreen(new DamageTintScreen(this));
+        }).bounds(x, y + 120, w, h).build());
+
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
-                .bounds(x, y + 130, w, h).build());
+                .bounds(x, y + 160, w, h).build());
     }
 
     @Override
