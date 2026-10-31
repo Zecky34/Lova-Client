@@ -96,6 +96,10 @@ public class LovaSettingsScreen extends Screen {
             LovaConfig.save();
             b.setMessage(noHurtCamLabel());
         }).bounds(x, 0, w, h).build(), 0);
+                addItem(Button.builder(Component.literal("Tuş gösterici ayarları"), b -> {
+            LovaConfig.save();
+            this.minecraft.setScreen(new KeystrokesScreen(this));
+        }).bounds(x, 0, w, h).build(), 144);
 
         addItem(new ValueSlider(x, 0, w, h, "Sallanma",
                 0, 1, cfg.hurtCamStrength, 100, "%",
@@ -121,7 +125,7 @@ public class LovaSettingsScreen extends Screen {
             this.minecraft.setScreen(new ComboScreen(this));
         }).bounds(x, 0, w, h).build(), 120);
 
-        contentH = 120 + h;
+        contentH = 144 + h;
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
                 .bounds(x, this.height - 28, w, h).build());
