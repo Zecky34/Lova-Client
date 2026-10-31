@@ -47,7 +47,7 @@ public class ComboScreen extends Screen {
                 v -> cfg.comboResetSec = Math.round(v)));
 
         this.addRenderableWidget(new ValueSlider(x, y0 + step * 2, w, h, "Boyut",
-                1, 4, cfg.comboScale, 100, "%",
+                0, 2, cfg.comboScale, 100, "%",
                 v -> cfg.comboScale = v));
 
         this.addRenderableWidget(new ValueSlider(x, y0 + step * 3, w, h, "Kırmızı",
