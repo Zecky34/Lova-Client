@@ -4,6 +4,7 @@ import dev.lova.client.feature.ComboFeature;
 import dev.lova.client.feature.CrosshairFeature;
 import dev.lova.client.feature.DamageTint;
 import dev.lova.client.feature.HudFeature;
+import dev.lova.client.feature.KeystrokesFeature;
 import dev.lova.client.feature.NoHurtCam;
 import net.fabricmc.api.ClientModInitializer;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ public class LovaClient implements ClientModInitializer {
         DamageTint.init();
         HudFeature.init();
         ComboFeature.init();
+        KeystrokesFeature.init();
         LOGGER.info("Lova Client loaded");
     }
 }
