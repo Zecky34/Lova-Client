@@ -34,24 +34,29 @@ public class LovaSettingsScreen extends Screen {
             cfg.noHurtCam = !cfg.noHurtCam;
             LovaConfig.save();
             b.setMessage(noHurtCamLabel());
-        }).bounds(x, y + 30, w, h).build());
+        }).bounds(x, y + 24, w, h).build());
 
-        this.addRenderableWidget(new ValueSlider(x, y + 60, w, h, "Sallanma",
+        this.addRenderableWidget(new ValueSlider(x, y + 48, w, h, "Sallanma",
                 0, 1, cfg.hurtCamStrength, 100, "%",
                 v -> cfg.hurtCamStrength = v));
 
         this.addRenderableWidget(Button.builder(Component.literal("Crosshair ayarları"), b -> {
             LovaConfig.save();
             this.minecraft.setScreen(new CrosshairScreen(this));
-        }).bounds(x, y + 90, w, h).build());
+        }).bounds(x, y + 72, w, h).build());
 
         this.addRenderableWidget(Button.builder(Component.literal("Damage Tint ayarları"), b -> {
             LovaConfig.save();
             this.minecraft.setScreen(new DamageTintScreen(this));
+        }).bounds(x, y + 96, w, h).build());
+
+        this.addRenderableWidget(Button.builder(Component.literal("HUD ayarları"), b -> {
+            LovaConfig.save();
+            this.minecraft.setScreen(new HudScreen(this));
         }).bounds(x, y + 120, w, h).build());
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
-                .bounds(x, y + 160, w, h).build());
+                .bounds(x, y + 150, w, h).build());
     }
 
     @Override
