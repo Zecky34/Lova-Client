@@ -40,6 +40,12 @@ public class LovaConfig {
     public int hudCorner = 0;
     public int hudColor = 0xFFFFFF;
 
+    // YENİ: Kombo sayacı
+    public boolean comboEnabled = false;
+    public double comboResetSec = 3.0;
+    public double comboScale = 2.0;
+    public int comboRgb = 0xFFFFFF;
+
     public static LovaConfig INSTANCE = new LovaConfig();
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
