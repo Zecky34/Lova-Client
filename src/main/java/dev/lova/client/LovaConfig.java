@@ -46,6 +46,11 @@ public class LovaConfig {
     public double comboScale = 2.0;
     public int comboRgb = 0xFFFFFF;
 
+        // YENİ: Tuş gösterici
+    public boolean keysEnabled = false;
+    public double keysScale = 1.0;
+    public int keysRgb = 0x50C8FF;
+
     public static LovaConfig INSTANCE = new LovaConfig();
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
