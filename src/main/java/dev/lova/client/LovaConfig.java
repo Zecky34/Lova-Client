@@ -25,8 +25,8 @@ public class LovaConfig {
     public String crosshairCustomPixels = defaultPixels();
 
     public boolean damageTintEnabled = false;
-    public int damageTintColor = 1;
-    public double damageTintIntensity = 0.4;
+    public int damageTintRgb = 0x0060FF;
+    public double damageTintOpacity = 0.6;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
