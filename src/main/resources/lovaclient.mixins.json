@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.lova.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "OverlayTextureMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
