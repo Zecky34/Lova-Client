@@ -50,6 +50,11 @@ public class LovaConfig {
     public boolean keysEnabled = false;
     public double keysScale = 1.0;
     public int keysRgb = 0x50C8FF;
+        // YENİ: Hasar göstergesi
+    public boolean damageIndicatorEnabled = false;
+    public double damageIndicatorSec = 1.0;
+    public double damageIndicatorScale = 1.0;
+    public int damageIndicatorRgb = 0xFF3030;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
