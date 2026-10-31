@@ -55,6 +55,10 @@ public class LovaSettingsScreen extends Screen {
             this.minecraft.setScreen(new HudScreen(this));
         }).bounds(x, y + 120, w, h).build());
 
+        this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
+                .bounds(x, y + 150, w, h).build());
+    }
+
     @Override
     public void removed() {
         LovaConfig.save();
