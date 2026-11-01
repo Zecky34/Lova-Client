@@ -104,6 +104,10 @@ public class LovaSettingsScreen extends Screen {
             LovaConfig.save();
             this.minecraft.setScreen(new DamageIndicatorScreen(this));
         }).bounds(x, 0, w, h).build(), 168);
+        addItem(Button.builder(Component.literal("HUD yerleştir"), b -> {
+            LovaConfig.save();
+            this.minecraft.setScreen(new HudEditScreen(this));
+        }).bounds(x, 0, w, h).build(), 192);
 
         addItem(new ValueSlider(x, 0, w, h, "Sallanma",
                 0, 1, cfg.hurtCamStrength, 100, "%",
@@ -129,7 +133,7 @@ public class LovaSettingsScreen extends Screen {
             this.minecraft.setScreen(new ComboScreen(this));
         }).bounds(x, 0, w, h).build(), 120);
 
-        contentH = 168 + h;
+        contentH = 192 + h;
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
                 .bounds(x, this.height - 28, w, h).build());
