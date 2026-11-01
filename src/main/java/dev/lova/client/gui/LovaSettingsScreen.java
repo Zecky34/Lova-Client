@@ -153,7 +153,11 @@ LovaConfig.save();
 this.minecraft.setScreen(new ChatTimestampScreen(this));
 }).bounds(x, 0, w, h).build(), 312);
 
-        contentH = 312 + h;
+addItem(Button.builder(Component.literal("Waypoint ayarları"), b -> {
+LovaConfig.save();
+this.minecraft.setScreen(new WaypointScreen(this));
+}).bounds(x, 0, w, h).build(), 336);
+contentH = 336 + h;
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
                 .bounds(x, this.height - 28, w, h).build());
