@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "OverlayTextureMixin",
-    "GameRendererMixin"
+    "GameRendererMixin",
+    "ChatComponentMixin",
+"ChatListenerMixin"
   ],
   "injectors": {
     "defaultRequire": 0
