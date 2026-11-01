@@ -8,6 +8,7 @@ import dev.lova.client.feature.DamageTint;
 import dev.lova.client.feature.HudFeature;
 import dev.lova.client.feature.KeystrokesFeature;
 import dev.lova.client.feature.NoHurtCam;
+import dev.lova.client.feature.ScreenEffectsFeature;
 import net.fabricmc.api.ClientModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ public class LovaClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         LovaConfig.load();
+        ScreenEffectsFeature.init();
         NoHurtCam.init();
         CrosshairFeature.init();
         DamageTint.init();
