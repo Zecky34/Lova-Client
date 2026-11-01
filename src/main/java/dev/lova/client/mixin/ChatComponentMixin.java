@@ -22,11 +22,8 @@ public class ChatComponentMixin {
         if (lovaclient$stamping) {
             return;
         }
-        if (signature == null) {
-            String text = message.getString();
-            if (!text.contains(" >> ") || text.matches("(?s).*\\d\\d:\\d\\d$")) {
-                return;
-            }
+        if (message.getString().matches("(?s).*\\d\\d:\\d\\d$")) {
+            return;
         }
         Component stamped = ChatTimestampFeature.stamp(message);
         if (stamped == message) {
