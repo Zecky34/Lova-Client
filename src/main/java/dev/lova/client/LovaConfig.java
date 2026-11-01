@@ -75,6 +75,10 @@ public class LovaConfig {
     public double coinFall = 1.0;
     public int coinTheme = 0;
     public int coinMax = 10;
+    // YENİ: Ekran efektleri
+public boolean grainEnabled = false;
+public double grainStrength = 0.0;
+public int grainMode = 0;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
