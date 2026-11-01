@@ -14,10 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HudEditScreen extends Screen {
-    private static final int HUD = 0;
-    private static final int COMBO = 1;
-    private static final int KEYS = 2;
-    private static final String[] NAMES = {"HUD", "Kombo", "Tuş gösterici"};
+    private static final int HUD_COUNT = HudFeature.COUNT;
+    private static final int COMBO = HUD_COUNT;
+    private static final int KEYS = HUD_COUNT + 1;
+    private static final int TOTAL = HUD_COUNT + 2;
     private static final int SNAP = 4;
     private static final int EDGE = 4;
 
@@ -34,28 +34,44 @@ public class HudEditScreen extends Screen {
         this.parent = parent;
     }
 
-    private int[] box(int i) {
-        return switch (i) {
-            case HUD -> HudFeature.bounds(this.minecraft, this.width, this.height);
-            case COMBO -> ComboFeature.bounds(this.minecraft, this.width, this.height);
-            default -> KeystrokesFeature.bounds(this.width, this.height);
-        };
+    private static String nameOf(int i) {
+        if (i < HUD_COUNT) {
+            return HudFeature.ELEMENT_NAMES[i];
+        }
+        return i == COMBO ? "Kombo" : "Tuş gösterici";
+    }
+
+    private int[][] boxes() {
+        int[][] r = new int[TOTAL][];
+        int[][] h = HudFeature.boundsAll(this.minecraft, this.width, this.height);
+        for (int i = 0; i < HUD_COUNT; i++) {
+            r[i] = h[i];
+        }
+        r[COMBO] = ComboFeature.bounds(this.minecraft, this.width, this.height);
+        r[KEYS] = KeystrokesFeature.bounds(this.width, this.height);
+        return r;
     }
 
     private boolean enabled(int i) {
         LovaConfig c = LovaConfig.INSTANCE;
-        return i == HUD ? c.hudEnabled : i == COMBO ? c.comboEnabled : c.keysEnabled;
+        if (i < HUD_COUNT) {
+            return HudFeature.isElementEnabled(i);
+        }
+        return i == COMBO ? c.comboEnabled : c.keysEnabled;
     }
 
     private double getScale(int i) {
         LovaConfig c = LovaConfig.INSTANCE;
-        return i == HUD ? c.hudScale : i == COMBO ? c.comboScale : c.keysScale;
+        if (i < HUD_COUNT) {
+            return c.hudPartScale[i];
+        }
+        return i == COMBO ? c.comboScale : c.keysScale;
     }
 
     private void setScale(int i, double v) {
         LovaConfig c = LovaConfig.INSTANCE;
-        if (i == HUD) {
-            c.hudScale = v;
+        if (i < HUD_COUNT) {
+            c.hudPartScale[i] = v;
         } else if (i == COMBO) {
             c.comboScale = v;
         } else {
@@ -67,9 +83,9 @@ public class HudEditScreen extends Screen {
         LovaConfig c = LovaConfig.INSTANCE;
         double fx = this.width - w > 0 ? Math.max(0, Math.min(1, x / (this.width - w))) : 0;
         double fy = this.height - h > 0 ? Math.max(0, Math.min(1, y / (this.height - h))) : 0;
-        if (i == HUD) {
-            c.hudPosX = fx;
-            c.hudPosY = fy;
+        if (i < HUD_COUNT) {
+            c.hudPartPosX[i] = fx;
+            c.hudPartPosY[i] = fy;
         } else if (i == COMBO) {
             c.comboPosX = fx;
             c.comboPosY = fy;
@@ -92,8 +108,10 @@ public class HudEditScreen extends Screen {
 
     private void resetPositions() {
         LovaConfig c = LovaConfig.INSTANCE;
-        c.hudPosX = -1;
-        c.hudPosY = -1;
+        for (int i = 0; i < HUD_COUNT; i++) {
+            c.hudPartPosX[i] = -1;
+            c.hudPartPosY[i] = -1;
+        }
         c.comboPosX = -1;
         c.comboPosY = -1;
         c.keysPosX = -1;
@@ -119,17 +137,17 @@ public class HudEditScreen extends Screen {
                 .bounds(x + (bw + gap) * 3, y, bw, 20).build());
     }
 
-    private int[] linesFor(boolean xAxis) {
+    private int[] linesFor(boolean xAxis, int[][] bx) {
         int total = xAxis ? this.width : this.height;
         List<Integer> l = new ArrayList<>();
         l.add(EDGE);
         l.add(total / 2);
         l.add(total - EDGE);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < TOTAL; i++) {
             if (i == dragging) {
                 continue;
             }
-            int[] b = box(i);
+            int[] b = bx[i];
             int p = xAxis ? b[0] : b[1];
             int s = xAxis ? b[2] : b[3];
             l.add(p);
@@ -172,8 +190,9 @@ public class HudEditScreen extends Screen {
         }
         double mx = event.x();
         double my = event.y();
-        for (int i = 2; i >= 0; i--) {
-            int[] b = box(i);
+        int[][] bx = boxes();
+        for (int i = TOTAL - 1; i >= 0; i--) {
+            int[] b = bx[i];
             if (mx >= b[0] && mx <= b[0] + b[2] && my >= b[1] && my <= b[1] + b[3]) {
                 selected = i;
                 dragging = i;
@@ -190,14 +209,15 @@ public class HudEditScreen extends Screen {
         if (dragging < 0) {
             return super.mouseDragged(event, dragX, dragY);
         }
-        int[] b = box(dragging);
+        int[][] bx = boxes();
+        int[] b = bx[dragging];
         int w = b[2];
         int h = b[3];
         double nx = event.x() - grabX;
         double ny = event.y() - grabY;
 
-        double[] sx = snapAxis(nx, w, linesFor(true));
-        double[] sy = snapAxis(ny, h, linesFor(false));
+        double[] sx = snapAxis(nx, w, linesFor(true, bx));
+        double[] sy = snapAxis(ny, h, linesFor(false, bx));
         nx = sx[0];
         ny = sy[0];
         snapX = (int) sx[1];
@@ -245,20 +265,24 @@ public class HudEditScreen extends Screen {
             g.fill(0, snapY, this.width, snapY + 1, 0xAAFFFF55);
         }
 
-        for (int i = 0; i < 3; i++) {
-            int[] b = box(i);
-            int color = i == selected ? 0xFF50C8FF : (enabled(i) ? 0xFFFFFFFF : 0x88FFFFFF);
+        int[][] bx = boxes();
+        for (int i = 0; i < TOTAL; i++) {
+            int[] b = bx[i];
+            boolean on = enabled(i);
+            int color = i == selected ? 0xFF50C8FF : (on ? 0xFFFFFFFF : 0x88FFFFFF);
             frame(g, b[0], b[1], b[2], b[3], color);
-            String label = NAMES[i] + (enabled(i) ? "" : " (kapalı)");
-            int ly = b[1] >= 12 ? b[1] - 10 : b[1] + b[3] + 2;
-            g.drawString(this.minecraft.font, label, b[0], ly, color, true);
+            if (i == selected || !on) {
+                String label = nameOf(i) + (on ? "" : " (kapalı)");
+                int ly = b[1] >= 12 ? b[1] - 10 : b[1] + b[3] + 2;
+                g.drawString(this.minecraft.font, label, b[0], ly, color, true);
+            }
         }
 
         super.render(g, mouseX, mouseY, partialTick);
 
         String info;
         if (selected >= 0) {
-            info = "Seçili: " + NAMES[selected] + "  %" + Math.round(getScale(selected) * 100);
+            info = "Seçili: " + nameOf(selected) + "  %" + Math.round(getScale(selected) * 100);
         } else {
             info = "Bir elemana bas ve sürükle";
         }
