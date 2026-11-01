@@ -17,6 +17,7 @@ import net.minecraft.world.item.Items;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -25,8 +26,34 @@ public class HudFeature {
             "Sol üst", "Sağ üst", "Sol alt", "Sağ alt"
     };
 
-    private static final int PAD = 3;
+    public static final String[] ELEMENT_NAMES = {
+            "FPS", "CPS", "Koordinat", "Ping", "Totem",
+            "Kask", "Göğüslük", "Pantolon", "Bot", "Efektler"
+    };
+    public static final int COUNT = 10;
+
+    private static final String[][] SAMPLES = {
+            {"FPS: 60"},
+            {"CPS: 0"},
+            {"XYZ: 0 64 0"},
+            {"Ping: 0 ms"},
+            {"Totem: 0"},
+            {"Kask: 100%"},
+            {"Zırh: 100%"},
+            {"Pantolon: 100%"},
+            {"Bot: 100%"},
+            {"Hız 2 1:30"}
+    };
+
+    private static final EquipmentSlot[] ARMOR_SLOTS = {
+            EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+    };
+    private static final String[] ARMOR_LABELS = {"Kask", "Zırh", "Pantolon", "Bot"};
+
+    private static final int PAD_X = 3;
+    private static final int PAD_Y = 2;
     private static final int MARGIN = 4;
+    private static final int GAP = 1;
 
     private static int frames = 0;
     private static long lastFpsTime = 0;
@@ -34,11 +61,14 @@ public class HudFeature {
     private static final ArrayDeque<Long> clicks = new ArrayDeque<>();
     private static boolean wasDown = false;
 
-    private static final class Layout {
+    private static final class El {
+        List<String> lines = new ArrayList<>();
+        boolean included = false;
+        boolean active = false;
         int lh;
         int innerW;
         int totalH;
-        float scale;
+        float s;
         float x;
         float y;
         float w;
@@ -52,112 +82,194 @@ public class HudFeature {
                 HudFeature::render);
     }
 
-    private static List<String> buildLines(Minecraft mc, LocalPlayer player, LovaConfig cfg) {
-        List<String> lines = new ArrayList<>();
+    public static boolean isElementEnabled(int i) {
+        LovaConfig c = LovaConfig.INSTANCE;
+        if (!c.hudEnabled) {
+            return false;
+        }
+        return switch (i) {
+            case 0 -> c.hudFps;
+            case 1 -> c.hudCps;
+            case 2 -> c.hudCoords;
+            case 3 -> c.hudPing;
+            case 4 -> c.hudTotem;
+            case 5, 6, 7, 8 -> c.hudArmor;
+            default -> c.hudEffects;
+        };
+    }
 
-        if (cfg.hudFps) {
-            lines.add("FPS: " + fps);
-        }
-        if (cfg.hudCps) {
-            lines.add("CPS: " + clicks.size());
-        }
-        if (cfg.hudCoords) {
-            lines.add(String.format(Locale.ROOT, "XYZ: %d %d %d",
-                    (int) Math.floor(player.getX()),
-                    (int) Math.floor(player.getY()),
-                    (int) Math.floor(player.getZ())));
-        }
-        if (cfg.hudPing) {
-            var conn = mc.getConnection();
-            String ping = "-";
-            if (conn != null) {
-                var info = conn.getPlayerInfo(player.getUUID());
-                if (info != null) {
-                    ping = info.getLatency() + " ms";
+    private static List<String> buildElement(int i, Minecraft mc, LocalPlayer player, LovaConfig cfg) {
+        List<String> lines = new ArrayList<>();
+        switch (i) {
+            case 0 -> {
+                if (cfg.hudFps) {
+                    lines.add("FPS: " + fps);
                 }
             }
-            lines.add("Ping: " + ping);
-        }
-        if (cfg.hudTotem) {
-            int totems = 0;
-            Inventory inv = player.getInventory();
-            for (int i = 0; i < inv.getContainerSize(); i++) {
-                ItemStack s = inv.getItem(i);
-                if (s.is(Items.TOTEM_OF_UNDYING)) {
-                    totems += s.getCount();
+            case 1 -> {
+                if (cfg.hudCps) {
+                    lines.add("CPS: " + clicks.size());
                 }
             }
-            lines.add("Totem: " + totems);
-        }
-        if (cfg.hudArmor) {
-            EquipmentSlot[] slots = {
-                    EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
-            };
-            String[] names = {"Kask", "Zırh", "Pantolon", "Bot"};
-            for (int i = 0; i < slots.length; i++) {
-                ItemStack s = player.getItemBySlot(slots[i]);
-                if (!s.isEmpty() && s.getMaxDamage() > 0) {
-                    int pct = 100 - (s.getDamageValue() * 100) / s.getMaxDamage();
-                    lines.add(names[i] + ": " + pct + "%");
+            case 2 -> {
+                if (cfg.hudCoords) {
+                    lines.add(String.format(Locale.ROOT, "XYZ: %d %d %d",
+                            (int) Math.floor(player.getX()),
+                            (int) Math.floor(player.getY()),
+                            (int) Math.floor(player.getZ())));
                 }
             }
-        }
-        if (cfg.hudEffects) {
-            for (MobEffectInstance e : player.getActiveEffects()) {
-                String name = e.getEffect().value().getDisplayName().getString();
-                int lvl = e.getAmplifier() + 1;
-                String time;
-                if (e.isInfiniteDuration()) {
-                    time = "**";
-                } else {
-                    int sec = e.getDuration() / 20;
-                    time = String.format(Locale.ROOT, "%d:%02d", sec / 60, sec % 60);
+            case 3 -> {
+                if (cfg.hudPing) {
+                    var conn = mc.getConnection();
+                    String ping = "-";
+                    if (conn != null) {
+                        var info = conn.getPlayerInfo(player.getUUID());
+                        if (info != null) {
+                            ping = info.getLatency() + " ms";
+                        }
+                    }
+                    lines.add("Ping: " + ping);
                 }
-                lines.add(name + (lvl > 1 ? " " + lvl : "") + " " + time);
+            }
+            case 4 -> {
+                if (cfg.hudTotem) {
+                    int totems = 0;
+                    Inventory inv = player.getInventory();
+                    for (int k = 0; k < inv.getContainerSize(); k++) {
+                        ItemStack s = inv.getItem(k);
+                        if (s.is(Items.TOTEM_OF_UNDYING)) {
+                            totems += s.getCount();
+                        }
+                    }
+                    lines.add("Totem: " + totems);
+                }
+            }
+            case 5, 6, 7, 8 -> {
+                if (cfg.hudArmor) {
+                    ItemStack s = player.getItemBySlot(ARMOR_SLOTS[i - 5]);
+                    if (!s.isEmpty() && s.getMaxDamage() > 0) {
+                        int pct = 100 - (s.getDamageValue() * 100) / s.getMaxDamage();
+                        lines.add(ARMOR_LABELS[i - 5] + ": " + pct + "%");
+                    }
+                }
+            }
+            default -> {
+                if (cfg.hudEffects) {
+                    for (MobEffectInstance e : player.getActiveEffects()) {
+                        String name = e.getEffect().value().getDisplayName().getString();
+                        int lvl = e.getAmplifier() + 1;
+                        String time;
+                        if (e.isInfiniteDuration()) {
+                            time = "**";
+                        } else {
+                            int sec = e.getDuration() / 20;
+                            time = String.format(Locale.ROOT, "%d:%02d", sec / 60, sec % 60);
+                        }
+                        lines.add(name + (lvl > 1 ? " " + lvl : "") + " " + time);
+                    }
+                }
             }
         }
         return lines;
     }
 
-    private static Layout layout(Minecraft mc, List<String> lines, int guiW, int guiH, LovaConfig cfg) {
-        Layout l = new Layout();
-        l.lh = mc.font.lineHeight + 2;
-        int maxW = 0;
-        for (String s : lines) {
-            maxW = Math.max(maxW, mc.font.width(s));
+    private static float stackHeight(List<El> list) {
+        float sum = 0;
+        for (El e : list) {
+            sum += e.h;
         }
-        l.innerW = maxW;
-        l.totalH = lines.size() * l.lh - 2;
-        l.scale = (float) Math.max(0.1, cfg.hudScale);
-        l.w = (maxW + PAD * 2) * l.scale;
-        l.h = (l.totalH + PAD * 2) * l.scale;
-
-        if (cfg.hudPosX >= 0 && cfg.hudPosY >= 0) {
-            l.x = (float) (cfg.hudPosX * Math.max(0f, guiW - l.w));
-            l.y = (float) (cfg.hudPosY * Math.max(0f, guiH - l.h));
-        } else {
-            boolean right = cfg.hudCorner == 1 || cfg.hudCorner == 3;
-            boolean bottom = cfg.hudCorner == 2 || cfg.hudCorner == 3;
-            l.x = right ? guiW - MARGIN - l.w : MARGIN;
-            l.y = bottom ? guiH - MARGIN - l.h : MARGIN;
+        if (list.size() > 1) {
+            sum += GAP * (list.size() - 1);
         }
-        return l;
+        return sum;
     }
 
-    /** Editör için: {x, y, genişlik, yükseklik} */
-    public static int[] bounds(Minecraft mc, int guiW, int guiH) {
+    private static void placeStack(List<El> list, float startY, boolean right, int guiW) {
+        float cur = startY;
+        for (El e : list) {
+            e.y = cur;
+            e.x = right ? guiW - MARGIN - e.w : MARGIN;
+            cur += e.h + GAP;
+        }
+    }
+
+    private static El[] computeAll(Minecraft mc, int guiW, int guiH, boolean editor) {
         LovaConfig cfg = LovaConfig.INSTANCE;
-        List<String> lines = new ArrayList<>();
-        if (mc.player != null) {
-            lines = buildLines(mc, mc.player, cfg);
+        LocalPlayer player = mc.player;
+        boolean master = cfg.hudEnabled && player != null;
+        int lh = mc.font.lineHeight + 2;
+
+        El[] els = new El[COUNT];
+        List<El> stackA = new ArrayList<>();
+        List<El> stackB = new ArrayList<>();
+
+        for (int i = 0; i < COUNT; i++) {
+            El e = new El();
+            els[i] = e;
+            if (master) {
+                e.lines = buildElement(i, mc, player, cfg);
+            }
+            e.active = !e.lines.isEmpty();
+            if (!e.active) {
+                if (!editor) {
+                    continue;
+                }
+                e.lines = new ArrayList<>(Arrays.asList(SAMPLES[i]));
+            }
+            e.included = true;
+            e.lh = lh;
+            int maxW = 0;
+            for (String s : e.lines) {
+                maxW = Math.max(maxW, mc.font.width(s));
+            }
+            e.innerW = maxW;
+            e.totalH = e.lines.size() * lh - 2;
+            e.s = (float) Math.max(0.1, cfg.hudPartScale[i]);
+            e.w = (maxW + PAD_X * 2) * e.s;
+            e.h = (e.totalH + PAD_Y * 2) * e.s;
+
+            double px = cfg.hudPartPosX[i];
+            double py = cfg.hudPartPosY[i];
+            if (px >= 0 && py >= 0) {
+                e.x = (float) (px * Math.max(0f, guiW - e.w));
+                e.y = (float) (py * Math.max(0f, guiH - e.h));
+            } else if (e.active) {
+                stackA.add(e);
+            } else {
+                stackB.add(e);
+            }
         }
-        if (lines.isEmpty()) {
-            lines.add("FPS: 60");
-            lines.add("CPS: 0");
-            lines.add("XYZ: 0 64 0");
+
+        boolean right = cfg.hudCorner == 1 || cfg.hudCorner == 3;
+        boolean bottom = cfg.hudCorner == 2 || cfg.hudCorner == 3;
+
+        float ha = stackHeight(stackA);
+        float startA = bottom ? guiH - MARGIN - ha : MARGIN;
+        placeStack(stackA, startA, right, guiW);
+
+        if (!stackB.isEmpty()) {
+            float hb = stackHeight(stackB);
+            float startB;
+            if (bottom) {
+                startB = (stackA.isEmpty() ? guiH - MARGIN : startA - GAP) - hb;
+            } else {
+                startB = stackA.isEmpty() ? MARGIN : MARGIN + ha + GAP;
+            }
+            placeStack(stackB, startB, right, guiW);
         }
-        Layout l = layout(mc, lines, guiW, guiH, cfg);
-        return new int[]{Math.round(l.x), Math.round(l.y), Math.round(l.w), Math.round(l.h)};
+        return els;
+    }
+
+    /** Editör için: her eleman {x, y, genişlik, yükseklik} */
+    public static int[][] boundsAll(Minecraft mc, int guiW, int guiH) {
+        El[] els = computeAll(mc, guiW, guiH, true);
+        int[][] r = new int[COUNT][];
+        for (int i = 0; i < COUNT; i++) {
+            El e = els[i];
+            r[i] = new int[]{Math.round(e.x), Math.round(e.y), Math.round(e.w), Math.round(e.h)};
+        }
+        return r;
     }
 
     private static void render(GuiGraphics g, DeltaTracker delta) {
@@ -184,28 +296,27 @@ public class HudFeature {
         if (!cfg.hudEnabled) {
             return;
         }
-        LocalPlayer player = mc.player;
-        if (player == null) {
+        if (mc.player == null) {
             return;
         }
 
-        List<String> lines = buildLines(mc, player, cfg);
-        if (lines.isEmpty()) {
-            return;
-        }
-
-        Layout l = layout(mc, lines, g.guiWidth(), g.guiHeight(), cfg);
-
-        g.pose().pushMatrix();
-        g.pose().translate(l.x, l.y);
-        g.pose().scale(l.scale, l.scale);
-        if (cfg.hudBackground) {
-            g.fill(0, 0, l.innerW + PAD * 2, l.totalH + PAD * 2, 0x80000000);
-        }
+        El[] els = computeAll(mc, g.guiWidth(), g.guiHeight(), false);
         int color = 0xFF000000 | (cfg.hudColor & 0xFFFFFF);
-        for (int i = 0; i < lines.size(); i++) {
-            g.drawString(mc.font, lines.get(i), PAD, PAD + i * l.lh, color, true);
+
+        for (El e : els) {
+            if (!e.included || !e.active) {
+                continue;
+            }
+            g.pose().pushMatrix();
+            g.pose().translate(e.x, e.y);
+            g.pose().scale(e.s, e.s);
+            if (cfg.hudBackground) {
+                g.fill(0, 0, e.innerW + PAD_X * 2, e.totalH + PAD_Y * 2, 0x80000000);
+            }
+            for (int k = 0; k < e.lines.size(); k++) {
+                g.drawString(mc.font, e.lines.get(k), PAD_X, PAD_Y + k * e.lh, color, true);
+            }
+            g.pose().popMatrix();
         }
-        g.pose().popMatrix();
     }
 }
