@@ -79,6 +79,16 @@ public class LovaConfig {
 public boolean grainEnabled = false;
 public double grainStrength = 0.0;
 public int grainMode = 0;
+    // YENİ: Zoom
+public boolean zoomEnabled = false;
+public double zoomFov = 0.25;
+public boolean zoomSmooth = true;
+// YENİ: Sunucu bilgisi
+public boolean serverInfoEnabled = false;
+public double serverInfoScale = 1.0;
+public int serverInfoRgb = 0xFFFFFF;
+public double serverInfoPosX = -1;
+public double serverInfoPosY = -1;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
