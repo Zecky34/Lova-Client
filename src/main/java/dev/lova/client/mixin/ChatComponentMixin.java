@@ -19,8 +19,14 @@ public class ChatComponentMixin {
             at = @At("HEAD"), cancellable = true)
     private void lovaclient$stamp(Component message, MessageSignature signature, GuiMessageTag tag,
                                   CallbackInfo ci) {
-        if (lovaclient$stamping || signature == null) {
+        if (lovaclient$stamping) {
             return;
+        }
+        if (signature == null) {
+            String text = message.getString();
+            if (!text.contains(" >> ") || text.matches("(?s).*\\d\\d:\\d\\d$")) {
+                return;
+            }
         }
         Component stamped = ChatTimestampFeature.stamp(message);
         if (stamped == message) {
