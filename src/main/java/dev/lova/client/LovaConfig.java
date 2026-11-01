@@ -55,6 +55,14 @@ public class LovaConfig {
     public double damageIndicatorSec = 1.0;
     public double damageIndicatorScale = 1.0;
     public int damageIndicatorRgb = 0xFF3030;
+        // YENİ: HUD yerleştirme (-1 = varsayılan konum)
+    public double hudPosX = -1;
+    public double hudPosY = -1;
+    public double hudScale = 1.0;
+    public double comboPosX = -1;
+    public double comboPosY = -1;
+    public double keysPosX = -1;
+    public double keysPosY = -1;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
