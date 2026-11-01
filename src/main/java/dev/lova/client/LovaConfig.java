@@ -63,6 +63,11 @@ public class LovaConfig {
     public double comboPosY = -1;
     public double keysPosX = -1;
     public double keysPosY = -1;
+        // YENİ: HUD elemanları ayrı ayrı
+    // sıra: FPS, CPS, Koordinat, Ping, Totem, Kask, Göğüslük, Pantolon, Bot, Efektler
+    public double[] hudPartPosX = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    public double[] hudPartPosY = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    public double[] hudPartScale = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
