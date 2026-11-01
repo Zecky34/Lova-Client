@@ -2,6 +2,7 @@ package dev.lova.client.gui;
 
 import dev.lova.client.LovaConfig;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -16,6 +17,10 @@ public class ServerInfoScreen extends Screen {
 
     private static Component onOff(boolean value) {
         return Component.literal("Sunucu bilgisi: " + (value ? "AÇIK" : "KAPALI"));
+    }
+
+    private static Component playersLabel(boolean value) {
+        return Component.literal("Oyuncu sayısı: " + (value ? "AÇIK" : "KAPALI"));
     }
 
     private static int withChannel(int rgb, int shift, int value) {
@@ -43,24 +48,34 @@ public class ServerInfoScreen extends Screen {
             b.setMessage(onOff(cfg.serverInfoEnabled));
         }).bounds(x, y0, w, h).build());
 
-        this.addRenderableWidget(new ValueSlider(x, y0 + step, w, h, "Boyut",
+        Button players = Button.builder(playersLabel(cfg.serverInfoPlayers), b -> {
+            cfg.serverInfoPlayers = !cfg.serverInfoPlayers;
+            LovaConfig.save();
+            b.setMessage(playersLabel(cfg.serverInfoPlayers));
+        }).bounds(x, y0 + step, w, h).build();
+        players.setTooltip(Tooltip.create(Component.literal(
+                "Sayılar her zaman doğru çıkmayabilir. Sunucu listesindeki değer sabit kalır, "
+                        + "tab listesi ise sahte oyuncuları da sayar.")));
+        this.addRenderableWidget(players);
+
+        this.addRenderableWidget(new ValueSlider(x, y0 + step * 2, w, h, "Boyut",
                 0, 2, cfg.serverInfoScale, 100, "%",
                 v -> cfg.serverInfoScale = v));
 
-        this.addRenderableWidget(new ValueSlider(x, y0 + step * 2, w, h, "Kırmızı",
+        this.addRenderableWidget(new ValueSlider(x, y0 + step * 3, w, h, "Kırmızı",
                 0, 255, (cfg.serverInfoRgb >> 16) & 0xFF, 1, "",
                 v -> cfg.serverInfoRgb = withChannel(cfg.serverInfoRgb, 16, (int) Math.round(v))));
 
-        this.addRenderableWidget(new ValueSlider(x, y0 + step * 3, w, h, "Yeşil",
+        this.addRenderableWidget(new ValueSlider(x, y0 + step * 4, w, h, "Yeşil",
                 0, 255, (cfg.serverInfoRgb >> 8) & 0xFF, 1, "",
                 v -> cfg.serverInfoRgb = withChannel(cfg.serverInfoRgb, 8, (int) Math.round(v))));
 
-        this.addRenderableWidget(new ValueSlider(x, y0 + step * 4, w, h, "Mavi",
+        this.addRenderableWidget(new ValueSlider(x, y0 + step * 5, w, h, "Mavi",
                 0, 255, cfg.serverInfoRgb & 0xFF, 1, "",
                 v -> cfg.serverInfoRgb = withChannel(cfg.serverInfoRgb, 0, (int) Math.round(v))));
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
-                .bounds(x, y0 + step * 5 + 8, w, h).build());
+                .bounds(x, y0 + step * 6 + 8, w, h).build());
     }
 
     @Override
