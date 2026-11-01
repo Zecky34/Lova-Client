@@ -1,5 +1,6 @@
 package dev.lova.client.mixin;
 
+import dev.lova.client.feature.WaypointFeature;
 import dev.lova.client.feature.ZoomFeature;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
@@ -14,9 +15,14 @@ public class GameRendererMixin {
     @Inject(method = "getFov", at = @At("RETURN"), cancellable = true)
     private void lovaclient$zoom(Camera camera, float partialTick, boolean useFovSetting,
                                  CallbackInfoReturnable<Float> cir) {
+        float result = cir.getReturnValue();
         float m = ZoomFeature.multiplier();
         if (m < 0.9999f) {
-            cir.setReturnValue(cir.getReturnValue() * m);
+            result = result * m;
+            cir.setReturnValue(result);
+        }
+        if (useFovSetting) {
+            WaypointFeature.lastFov = result;
         }
     }
 }
