@@ -4,6 +4,7 @@ import dev.lova.client.LovaConfig;
 import dev.lova.client.feature.ComboFeature;
 import dev.lova.client.feature.HudFeature;
 import dev.lova.client.feature.KeystrokesFeature;
+import dev.lova.client.feature.ServerInfoFeature;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -14,10 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HudEditScreen extends Screen {
+
     private static final int HUD_COUNT = HudFeature.COUNT;
     private static final int COMBO = HUD_COUNT;
     private static final int KEYS = HUD_COUNT + 1;
-    private static final int TOTAL = HUD_COUNT + 2;
+    private static final int SERVER = HUD_COUNT + 2;
+    private static final int TOTAL = HUD_COUNT + 3;
     private static final int SNAP = 4;
     private static final int EDGE = 4;
 
@@ -38,7 +41,13 @@ public class HudEditScreen extends Screen {
         if (i < HUD_COUNT) {
             return HudFeature.ELEMENT_NAMES[i];
         }
-        return i == COMBO ? "Kombo" : "Tuş gösterici";
+        if (i == COMBO) {
+            return "Kombo";
+        }
+        if (i == KEYS) {
+            return "Tuş gösterici";
+        }
+        return "Sunucu bilgisi";
     }
 
     private int[][] boxes() {
@@ -49,6 +58,7 @@ public class HudEditScreen extends Screen {
         }
         r[COMBO] = ComboFeature.bounds(this.minecraft, this.width, this.height);
         r[KEYS] = KeystrokesFeature.bounds(this.width, this.height);
+        r[SERVER] = ServerInfoFeature.bounds(this.minecraft, this.width, this.height);
         return r;
     }
 
@@ -57,7 +67,13 @@ public class HudEditScreen extends Screen {
         if (i < HUD_COUNT) {
             return HudFeature.isElementEnabled(i);
         }
-        return i == COMBO ? c.comboEnabled : c.keysEnabled;
+        if (i == COMBO) {
+            return c.comboEnabled;
+        }
+        if (i == KEYS) {
+            return c.keysEnabled;
+        }
+        return c.serverInfoEnabled;
     }
 
     private double getScale(int i) {
@@ -65,7 +81,13 @@ public class HudEditScreen extends Screen {
         if (i < HUD_COUNT) {
             return c.hudPartScale[i];
         }
-        return i == COMBO ? c.comboScale : c.keysScale;
+        if (i == COMBO) {
+            return c.comboScale;
+        }
+        if (i == KEYS) {
+            return c.keysScale;
+        }
+        return c.serverInfoScale;
     }
 
     private void setScale(int i, double v) {
@@ -74,8 +96,10 @@ public class HudEditScreen extends Screen {
             c.hudPartScale[i] = v;
         } else if (i == COMBO) {
             c.comboScale = v;
-        } else {
+        } else if (i == KEYS) {
             c.keysScale = v;
+        } else {
+            c.serverInfoScale = v;
         }
     }
 
@@ -89,9 +113,12 @@ public class HudEditScreen extends Screen {
         } else if (i == COMBO) {
             c.comboPosX = fx;
             c.comboPosY = fy;
-        } else {
+        } else if (i == KEYS) {
             c.keysPosX = fx;
             c.keysPosY = fy;
+        } else {
+            c.serverInfoPosX = fx;
+            c.serverInfoPosY = fy;
         }
     }
 
@@ -116,6 +143,8 @@ public class HudEditScreen extends Screen {
         c.comboPosY = -1;
         c.keysPosX = -1;
         c.keysPosY = -1;
+        c.serverInfoPosX = -1;
+        c.serverInfoPosY = -1;
         LovaConfig.save();
     }
 
@@ -126,7 +155,6 @@ public class HudEditScreen extends Screen {
         int total = bw * 4 + gap * 3;
         int x = (this.width - total) / 2;
         int y = this.height - 28;
-
         this.addRenderableWidget(Button.builder(Component.literal("-"), b -> changeScale(-0.1))
                 .bounds(x, y, bw, 20).build());
         this.addRenderableWidget(Button.builder(Component.literal("+"), b -> changeScale(0.1))
@@ -215,14 +243,12 @@ public class HudEditScreen extends Screen {
         int h = b[3];
         double nx = event.x() - grabX;
         double ny = event.y() - grabY;
-
         double[] sx = snapAxis(nx, w, linesFor(true, bx));
         double[] sy = snapAxis(ny, h, linesFor(false, bx));
         nx = sx[0];
         ny = sy[0];
         snapX = (int) sx[1];
         snapY = (int) sy[1];
-
         nx = Math.max(0, Math.min(this.width - w, nx));
         ny = Math.max(0, Math.min(this.height - h, ny));
         setPos(dragging, nx, ny, w, h);
@@ -257,14 +283,12 @@ public class HudEditScreen extends Screen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         ComboFeature.drawPreview(g, this.minecraft);
-
         if (snapX >= 0) {
             g.fill(snapX, 0, snapX + 1, this.height, 0xAAFFFF55);
         }
         if (snapY >= 0) {
             g.fill(0, snapY, this.width, snapY + 1, 0xAAFFFF55);
         }
-
         int[][] bx = boxes();
         for (int i = 0; i < TOTAL; i++) {
             int[] b = bx[i];
@@ -277,12 +301,10 @@ public class HudEditScreen extends Screen {
                 g.drawString(this.minecraft.font, label, b[0], ly, color, true);
             }
         }
-
         super.render(g, mouseX, mouseY, partialTick);
-
         String info;
         if (selected >= 0) {
-            info = "Seçili: " + nameOf(selected) + "  %" + Math.round(getScale(selected) * 100);
+            info = "Seçili: " + nameOf(selected) + " %" + Math.round(getScale(selected) * 100);
         } else {
             info = "Bir elemana bas ve sürükle";
         }
