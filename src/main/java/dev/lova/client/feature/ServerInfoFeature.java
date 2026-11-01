@@ -24,9 +24,23 @@ public class ServerInfoFeature {
                 VanillaHudElements.CHAT,
                 Identifier.fromNamespaceAndPath(LovaClient.MOD_ID, "serverinfo"),
                 ServerInfoFeature::render);
+private static List<String> lines(Minecraft mc, boolean editor) {
+    LovaConfig cfg = LovaConfig.INSTANCE;
+    List<String> l = new ArrayList<>();
+    ServerData sd = mc.getCurrentServer();
+    if (sd != null && mc.getConnection() != null) {
+        l.add(sd.ip);
+        if (cfg.serverInfoPlayers) {
+            l.add("Oyuncu: " + (sd.players != null ? sd.players.online() : mc.getConnection().getOnlinePlayers().size()));
+        }
+    } else if (editor) {
+        l.add("play.ornek.com");
+        if (cfg.serverInfoPlayers) {
+            l.add("Oyuncu: 0");
+        }
     }
-
-    private static List<String> lines(Minecraft mc, boolean editor) {
+    return l;
+}
         List<String> l = new ArrayList<>();
         ServerData sd = mc.getCurrentServer();
         if (sd != null && mc.getConnection() != null) {
