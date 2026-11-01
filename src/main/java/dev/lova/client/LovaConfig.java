@@ -89,6 +89,7 @@ public double serverInfoScale = 1.0;
 public int serverInfoRgb = 0xFFFFFF;
 public double serverInfoPosX = -1;
 public double serverInfoPosY = -1;
+public boolean serverInfoPlayers = false;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
