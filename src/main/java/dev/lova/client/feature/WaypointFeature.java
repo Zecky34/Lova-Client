@@ -55,6 +55,7 @@ public class WaypointFeature {
     private static KeyMapping key;
     private static boolean wasDown = false;
     private static boolean wasDead = false;
+    public static float lastFov = 0f;
 
     public static void init() {
         load();
@@ -211,7 +212,8 @@ public class WaypointFeature {
         Camera cam = mc.gameRenderer.getMainCamera();
         Vec3 cp = cam.position();
         Quaternionf inv = new Quaternionf(cam.rotation()).conjugate();
-        float tanHalf = (float) Math.tan(Math.toRadians(mc.options.fov().get()) / 2.0);
+        float fov = lastFov > 1f ? lastFov : mc.options.fov().get();
+        float tanHalf = (float) Math.tan(Math.toRadians(fov) / 2.0);
         int w = g.guiWidth();
         int h = g.guiHeight();
         float aspect = (float) w / (float) h;
