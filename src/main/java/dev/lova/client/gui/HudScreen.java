@@ -80,6 +80,8 @@ public class HudScreen extends Screen {
         this.addRenderableWidget(Button.builder(cornerLabel(cfg.hudCorner), b -> {
             int len = HudFeature.CORNER_NAMES.length;
             cfg.hudCorner = Math.floorMod(cfg.hudCorner + 1, len);
+            cfg.hudPosX = -1;
+            cfg.hudPosY = -1;
             LovaConfig.save();
             b.setMessage(cornerLabel(cfg.hudCorner));
         }).bounds(rx, y0 + step * 3, w, h).build());
