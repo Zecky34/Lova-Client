@@ -25,12 +25,25 @@ public class HudFeature {
             "Sol üst", "Sağ üst", "Sol alt", "Sağ alt"
     };
 
+    private static final int PAD = 3;
+    private static final int MARGIN = 4;
+
     private static int frames = 0;
     private static long lastFpsTime = 0;
     private static int fps = 0;
-
     private static final ArrayDeque<Long> clicks = new ArrayDeque<>();
     private static boolean wasDown = false;
+
+    private static final class Layout {
+        int lh;
+        int innerW;
+        int totalH;
+        float scale;
+        float x;
+        float y;
+        float w;
+        float h;
+    }
 
     public static void init() {
         HudElementRegistry.attachElementBefore(
@@ -39,35 +52,7 @@ public class HudFeature {
                 HudFeature::render);
     }
 
-    private static void render(GuiGraphics g, DeltaTracker delta) {
-        Minecraft mc = Minecraft.getInstance();
-        long now = System.currentTimeMillis();
-
-        frames++;
-        if (now - lastFpsTime >= 1000) {
-            fps = frames;
-            frames = 0;
-            lastFpsTime = now;
-        }
-
-        boolean down = mc.options.keyAttack.isDown();
-        if (down && !wasDown) {
-            clicks.addLast(now);
-        }
-        wasDown = down;
-        while (!clicks.isEmpty() && now - clicks.peekFirst() > 1000) {
-            clicks.removeFirst();
-        }
-
-        LovaConfig cfg = LovaConfig.INSTANCE;
-        if (!cfg.hudEnabled) {
-            return;
-        }
-        LocalPlayer player = mc.player;
-        if (player == null) {
-            return;
-        }
-
+    private static List<String> buildLines(Minecraft mc, LocalPlayer player, LovaConfig cfg) {
         List<String> lines = new ArrayList<>();
 
         if (cfg.hudFps) {
@@ -131,32 +116,96 @@ public class HudFeature {
                 lines.add(name + (lvl > 1 ? " " + lvl : "") + " " + time);
             }
         }
+        return lines;
+    }
 
+    private static Layout layout(Minecraft mc, List<String> lines, int guiW, int guiH, LovaConfig cfg) {
+        Layout l = new Layout();
+        l.lh = mc.font.lineHeight + 2;
+        int maxW = 0;
+        for (String s : lines) {
+            maxW = Math.max(maxW, mc.font.width(s));
+        }
+        l.innerW = maxW;
+        l.totalH = lines.size() * l.lh - 2;
+        l.scale = (float) Math.max(0.1, cfg.hudScale);
+        l.w = (maxW + PAD * 2) * l.scale;
+        l.h = (l.totalH + PAD * 2) * l.scale;
+
+        if (cfg.hudPosX >= 0 && cfg.hudPosY >= 0) {
+            l.x = (float) (cfg.hudPosX * Math.max(0f, guiW - l.w));
+            l.y = (float) (cfg.hudPosY * Math.max(0f, guiH - l.h));
+        } else {
+            boolean right = cfg.hudCorner == 1 || cfg.hudCorner == 3;
+            boolean bottom = cfg.hudCorner == 2 || cfg.hudCorner == 3;
+            l.x = right ? guiW - MARGIN - l.w : MARGIN;
+            l.y = bottom ? guiH - MARGIN - l.h : MARGIN;
+        }
+        return l;
+    }
+
+    /** Editör için: {x, y, genişlik, yükseklik} */
+    public static int[] bounds(Minecraft mc, int guiW, int guiH) {
+        LovaConfig cfg = LovaConfig.INSTANCE;
+        List<String> lines = new ArrayList<>();
+        if (mc.player != null) {
+            lines = buildLines(mc, mc.player, cfg);
+        }
+        if (lines.isEmpty()) {
+            lines.add("FPS: 60");
+            lines.add("CPS: 0");
+            lines.add("XYZ: 0 64 0");
+        }
+        Layout l = layout(mc, lines, guiW, guiH, cfg);
+        return new int[]{Math.round(l.x), Math.round(l.y), Math.round(l.w), Math.round(l.h)};
+    }
+
+    private static void render(GuiGraphics g, DeltaTracker delta) {
+        Minecraft mc = Minecraft.getInstance();
+        long now = System.currentTimeMillis();
+
+        frames++;
+        if (now - lastFpsTime >= 1000) {
+            fps = frames;
+            frames = 0;
+            lastFpsTime = now;
+        }
+
+        boolean down = mc.options.keyAttack.isDown();
+        if (down && !wasDown) {
+            clicks.addLast(now);
+        }
+        wasDown = down;
+        while (!clicks.isEmpty() && now - clicks.peekFirst() > 1000) {
+            clicks.removeFirst();
+        }
+
+        LovaConfig cfg = LovaConfig.INSTANCE;
+        if (!cfg.hudEnabled) {
+            return;
+        }
+        LocalPlayer player = mc.player;
+        if (player == null) {
+            return;
+        }
+
+        List<String> lines = buildLines(mc, player, cfg);
         if (lines.isEmpty()) {
             return;
         }
 
-        int lh = mc.font.lineHeight + 2;
-        int maxW = 0;
-        for (String l : lines) {
-            maxW = Math.max(maxW, mc.font.width(l));
-        }
-        int totalH = lines.size() * lh - 2;
-        int pad = 3;
-        int margin = 4;
+        Layout l = layout(mc, lines, g.guiWidth(), g.guiHeight(), cfg);
 
-        boolean right = cfg.hudCorner == 1 || cfg.hudCorner == 3;
-        boolean bottom = cfg.hudCorner == 2 || cfg.hudCorner == 3;
-        int x = right ? g.guiWidth() - margin - pad - maxW : margin + pad;
-        int y = bottom ? g.guiHeight() - margin - pad - totalH : margin + pad;
-
+        g.pose().pushMatrix();
+        g.pose().translate(l.x, l.y);
+        g.pose().scale(l.scale, l.scale);
         if (cfg.hudBackground) {
-            g.fill(x - pad, y - pad, x + maxW + pad, y + totalH + pad, 0x80000000);
+            g.fill(0, 0, l.innerW + PAD * 2, l.totalH + PAD * 2, 0x80000000);
         }
-
         int color = 0xFF000000 | (cfg.hudColor & 0xFFFFFF);
         for (int i = 0; i < lines.size(); i++) {
-            g.drawString(mc.font, lines.get(i), x, y + i * lh, color, true);
+            g.drawString(mc.font, lines.get(i), PAD, PAD + i * l.lh, color, true);
         }
+        g.pose().popMatrix();
     }
 }
