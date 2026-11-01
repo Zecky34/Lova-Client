@@ -33,6 +33,7 @@ public class LovaClient implements ClientModInitializer {
         CoinFeature.init();
         ServerInfoFeature.init();
         ZoomFeature.init();
+        dev.lova.client.feature.WaypointFeature.init();
         LOGGER.info("Lova Client loaded");
     }
 }
