@@ -68,6 +68,13 @@ public class LovaConfig {
     public double[] hudPartPosX = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     public double[] hudPartPosY = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     public double[] hudPartScale = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        // YENİ: Jeton modu
+    public boolean coinEnabled = false;
+    public double coinScale = 1.0;
+    public double coinGroundSec = 1.5;
+    public double coinFall = 1.0;
+    public int coinTheme = 0;
+    public int coinMax = 10;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
