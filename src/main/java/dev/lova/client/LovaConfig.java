@@ -90,6 +90,9 @@ public int serverInfoRgb = 0xFFFFFF;
 public double serverInfoPosX = -1;
 public double serverInfoPosY = -1;
 public boolean serverInfoPlayers = false;
+    // YENİ: Sohbet zaman damgası
+public boolean chatTimeEnabled = false;
+public int chatTimeRgb = 0xAAAAAA;
 
     public static LovaConfig INSTANCE = new LovaConfig();
 
