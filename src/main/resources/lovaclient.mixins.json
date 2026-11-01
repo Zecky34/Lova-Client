@@ -4,7 +4,8 @@
   "package": "dev.lova.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "OverlayTextureMixin"
+    "OverlayTextureMixin",
+    "GameRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 0
