@@ -148,8 +148,12 @@ addItem(Button.builder(Component.literal("Sunucu bilgisi ayarları"), b -> {
 LovaConfig.save();
 this.minecraft.setScreen(new ServerInfoScreen(this));
 }).bounds(x, 0, w, h).build(), 288);
+        addItem(Button.builder(Component.literal("Sohbet zaman damgası"), b -> {
+LovaConfig.save();
+this.minecraft.setScreen(new ChatTimestampScreen(this));
+}).bounds(x, 0, w, h).build(), 312);
 
-        contentH = 288 + h;
+        contentH = 312 + h;
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
                 .bounds(x, this.height - 28, w, h).build());
