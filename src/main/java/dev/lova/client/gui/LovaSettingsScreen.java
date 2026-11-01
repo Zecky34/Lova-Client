@@ -136,8 +136,12 @@ public class LovaSettingsScreen extends Screen {
             LovaConfig.save();
             this.minecraft.setScreen(new ComboScreen(this));
         }).bounds(x, 0, w, h).build(), 120);
+        addItem(Button.builder(Component.literal("Ekran efektleri ayarları"), b -> {
+LovaConfig.save();
+this.minecraft.setScreen(new ScreenEffectsScreen(this));
+}).bounds(x, 0, w, h).build(), 240);
 
-        contentH = 216 + h;
+        contentH = 240 + h;
 
         this.addRenderableWidget(Button.builder(Component.literal("Geri"), b -> this.onClose())
                 .bounds(x, this.height - 28, w, h).build());
