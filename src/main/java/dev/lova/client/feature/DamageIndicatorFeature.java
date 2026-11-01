@@ -80,8 +80,14 @@ public class DamageIndicatorFeature {
             float cur = target.getHealth();
             if (cur < targetHealth) {
                 float dmg = targetHealth - cur;
-                spawn(target.getX(), target.getY() + target.getBbHeight() + 0.3,
-                        target.getZ(), dmg, now);
+                LovaConfig cfg = LovaConfig.INSTANCE;
+                if (cfg.damageIndicatorEnabled && cfg.coinEnabled) {
+                    CoinFeature.spawn(mc, target.getX(), target.getY(), target.getZ(),
+                            target.getBbHeight(), formatDamage(dmg), now);
+                } else {
+                    spawn(target.getX(), target.getY() + target.getBbHeight() + 0.3,
+                            target.getZ(), dmg, now);
+                }
                 targetHealth = cur;
                 target = null;
             } else {
@@ -110,7 +116,7 @@ public class DamageIndicatorFeature {
         return Math.max(1L, (long) (LovaConfig.INSTANCE.damageIndicatorSec * 1000.0));
     }
 
-    private static String formatDamage(float d) {
+    public static String formatDamage(float d) {
         if (Math.abs(d - Math.round(d)) < 0.05f) {
             return "-" + Math.round(d);
         }
