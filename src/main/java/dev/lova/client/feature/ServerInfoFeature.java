@@ -31,7 +31,7 @@ public class ServerInfoFeature {
         ServerData sd = mc.getCurrentServer();
         if (sd != null && mc.getConnection() != null) {
             l.add(sd.ip);
-            l.add("Oyuncu: " + mc.getConnection().getOnlinePlayers().size());
+l.add("Oyuncu: " + (sd.players != null ? sd.players.online() : mc.getConnection().getOnlinePlayers().size()));
         } else if (editor) {
             l.add("play.ornek.com");
             l.add("Oyuncu: 0");
