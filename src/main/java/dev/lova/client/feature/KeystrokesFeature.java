@@ -21,6 +21,30 @@ public class KeystrokesFeature {
                 KeystrokesFeature::render);
     }
 
+    /** {x, y, genişlik, yükseklik} (ekran birimi, float) */
+    private static float[] place(int guiW, int guiH, float s) {
+        LovaConfig cfg = LovaConfig.INSTANCE;
+        float w = BOX_W * s;
+        float h = BOX_H * s;
+        float x;
+        float y;
+        if (cfg.keysPosX >= 0 && cfg.keysPosY >= 0) {
+            x = (float) (cfg.keysPosX * Math.max(0f, guiW - w));
+            y = (float) (cfg.keysPosY * Math.max(0f, guiH - h));
+        } else {
+            x = guiW - w - MARGIN;
+            y = guiH - h - MARGIN;
+        }
+        return new float[]{x, y, w, h};
+    }
+
+    /** Editör için: {x, y, genişlik, yükseklik} */
+    public static int[] bounds(int guiW, int guiH) {
+        float s = (float) Math.max(0.1, LovaConfig.INSTANCE.keysScale);
+        float[] p = place(guiW, guiH, s);
+        return new int[]{Math.round(p[0]), Math.round(p[1]), Math.round(p[2]), Math.round(p[3])};
+    }
+
     private static void render(GuiGraphics g, DeltaTracker delta) {
         LovaConfig cfg = LovaConfig.INSTANCE;
         if (!cfg.keysEnabled) {
@@ -35,11 +59,10 @@ public class KeystrokesFeature {
             return;
         }
         int rgb = cfg.keysRgb & 0xFFFFFF;
-        float ox = g.guiWidth() - BOX_W * scale - MARGIN;
-        float oy = g.guiHeight() - BOX_H * scale - MARGIN;
+        float[] p = place(g.guiWidth(), g.guiHeight(), scale);
 
         g.pose().pushMatrix();
-        g.pose().translate(ox, oy);
+        g.pose().translate(p[0], p[1]);
         g.pose().scale(scale, scale);
 
         key(g, mc, 22, 0, 20, 20, "W", mc.options.keyUp.isDown(), rgb);
