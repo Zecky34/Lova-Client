@@ -9,6 +9,8 @@ import dev.lova.client.feature.HudFeature;
 import dev.lova.client.feature.KeystrokesFeature;
 import dev.lova.client.feature.NoHurtCam;
 import dev.lova.client.feature.ScreenEffectsFeature;
+import dev.lova.client.feature.ServerInfoFeature;
+import dev.lova.client.feature.ZoomFeature;
 import net.fabricmc.api.ClientModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,8 @@ public class LovaClient implements ClientModInitializer {
         KeystrokesFeature.init();
         DamageIndicatorFeature.init();
         CoinFeature.init();
+        ServerInfoFeature.init();
+        ZoomFeature.init();
         LOGGER.info("Lova Client loaded");
     }
 }
