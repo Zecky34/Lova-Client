@@ -95,6 +95,10 @@ public boolean chatTimeEnabled = false;
 public int chatTimeRgb = 0xAAAAAA;
 
     public static LovaConfig INSTANCE = new LovaConfig();
+    // Waypoint
+public boolean waypointEnabled = false;
+public double waypointScale = 1.0;
+public boolean waypointDeathEnabled = false;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
